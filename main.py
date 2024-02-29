@@ -38,6 +38,7 @@ screen = pygame.display.set_mode((200+100*num_collums, 700))
 
 empty_template = {"main": "", "nums": [], "extra": ""}
 
+people_colors = {"Oberst Multe": (255, 255, 0), "Professor Lavendel": (128, 0, 128), "Sogneprest Bregne": (0, 128, 0), "Fru Blåklokke": (0, 0, 255), "Frøken Rose": (255, 0, 0), "Fru Hvitveis": (255, 255, 255)}
 
 if os.path.exists("rows.pkl"):
     with open('rows.pkl', 'rb') as f:
@@ -78,13 +79,16 @@ text_surfaces = {}
 def fit_text_into_rect(text, rect, initial_font_size, font_name=None, offset=0):
     font_size = initial_font_size
     font = pygame.font.Font(font_name, font_size)
-    text_surface = font.render(text, True, text_color)
+    color = text_color
+    if text in people_colors:
+        color = people_colors[text]
+    text_surface = font.render(text, True, color)
     
     # Decrease the font size until the text fits within the rectangle
     while text_surface.get_width() > rect.width - offset or text_surface.get_height() > rect.height - offset:
         font_size -= 1
         font = pygame.font.Font(font_name, font_size)
-        text_surface = font.render(text, True, text_color)
+        text_surface = font.render(text, True, color)
         
         if font_size == 1:  # Prevent infinite loop
             break
