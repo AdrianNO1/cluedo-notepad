@@ -26,6 +26,7 @@ Controls:
 - Press 'l' to load the board from the file (is done automatically on startup)
 - Ctrl + Z to undo
 - Ctrl + Y to redo
+- You can also use arrow keys to select a player
 """
 
 
@@ -113,9 +114,12 @@ def draw_text_on_rect(text, rect, placement="main"):
         text_surfaces[str(text)] = (text_surface, text_rect)
     screen.blit(text_surface, text_rect)
 
+def get_rect(i, i2, i3):
+    return pygame.Rect(row_start[0] + i3*collum_width - border_size*i3, row_start[1] + i2*row_height + i*row_margin - border_size*i2, collum_width, row_height)
+
 def draw_tile(i, i2, i3, value):
     global hovered_tile
-    rect = pygame.Rect(row_start[0] + i3*collum_width - border_size*i3, row_start[1] + i2*row_height + i*row_margin - border_size*i2, collum_width, row_height)
+    rect = get_rect(i, i2, i3)
     if rect.collidepoint(pygame.mouse.get_pos()):
         #if i3 > 0 and i2 > 0:
         hovered_tile = {"rect": rect, "row": i2, "collum": i3, "value": value}
@@ -161,13 +165,13 @@ def get_tile_value_from_hovered_tile():
 def create_backup():
     global current
     if rows != backups[-1]:
-        print("Creating backup")
+        #print("Creating backup")
         backups.append(copy.deepcopy(rows))
         current = len(backups)-1
         with open('rows.pkl', 'wb') as f:
             pickle.dump(backups, f, pickle.HIGHEST_PROTOCOL)
-    else:
-        print("No changes")
+    #else:
+        #print("No changes")
 
 def fill_in(create_backupa=False):
     i2 = 0
@@ -269,12 +273,12 @@ while running:
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_z and (pygame.key.get_mods() & pygame.KMOD_CTRL):
-                print("undo")
+                #print("undo")
                 current -= 1
                 current = max(0, current)
                 rows = copy.deepcopy(backups[current])
             elif event.key == pygame.K_y and (pygame.key.get_mods() & pygame.KMOD_CTRL):
-                print("redo")
+                #print("redo")
                 current += 1
                 current = min(len(backups)-1, current)
                 rows = copy.deepcopy(backups[current])
@@ -381,5 +385,29 @@ while running:
                     fill_in()
                 fill_in(True)
             
+            elif event.key == pygame.K_RIGHT or event.key == pygame.K_UP:
+                target = 0
+                if selected_player:
+                    target = selected_player["collum"]
+                if target == num_collums:
+                    target = 0
+                for i, value in enumerate(rows["players"]):
+                    if i == target:
+                        rect = get_rect(1, 0, i+1)
+                        selected_player = {"rect": rect, "row": 0, "collum": i+1, "value": value}
+                        break
+            
+            elif event.key == pygame.K_LEFT or event.key == pygame.K_DOWN:
+                target = 0
+                if selected_player:
+                    target = selected_player["collum"]-2
+                if target == -1:
+                    target = num_collums-1
+                for i, value in enumerate(rows["players"]):
+                    if i == target:
+                        rect = get_rect(1, 0, i+1)
+                        selected_player = {"rect": rect, "row": 0, "collum": i+1, "value": value}
+                        break
+
 
     pygame.display.flip()
